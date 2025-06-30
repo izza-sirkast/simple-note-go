@@ -27,12 +27,13 @@ func main() {
 		// Format the note by appending index for every line
 		noteLines := strings.Split(noteDataString, "\n")
 		for i, line := range noteLines {
-			noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
+			// noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
+			fmt.Printf("%d %s\n", i+1, line)
 		}
 		// Print the formatted note
-		for _, line := range noteLines {
-			fmt.Print(line)
-		}
+		// for _, line := range noteLines {
+		// 	fmt.Print(line)
+		// }
 
 		// Get user input for program option
 		fmt.Print("\n\n" +
@@ -72,17 +73,16 @@ func main() {
 				return
 			}
 
-			fmt.Print("Input: ")
+			fmt.Print("Type the new text: ")
 			insertLine, errInsertLine := reader.ReadString('\n')
 			if errInsertLine != nil {
 				fmt.Println(errInsertLine)
 				return
 			}
 
-			noteLinesUpdated := strings.Split(noteDataString, "\n")
-			noteLinesUpdated[insertLineNumInt-1] = insertLine
+			noteLines[insertLineNumInt-1] = insertLine
 			var updatedNoteStrings string
-			for _, line := range noteLinesUpdated {
+			for _, line := range noteLines {
 				updatedNoteStrings += fmt.Sprintf("%s\n", line)
 			}
 
@@ -93,6 +93,41 @@ func main() {
 				fmt.Println(errWriteNoteData)
 				return
 			}
+		} else if programState == 2 {
+			// Change / insert a line with user input
+			fmt.Print("Which line to be deleted: ")
+			deleteLineNum, errDeleteLineNum := reader.ReadString('\n')
+			if errDeleteLineNum != nil {
+				fmt.Println(errDeleteLineNum)
+				return
+			}
+			deleteLineNum = strings.TrimSpace(deleteLineNum)
+			deleteLineNumInt, errDeleteLineNumInt := strconv.Atoi(deleteLineNum)
+			if errDeleteLineNumInt != nil {
+				fmt.Println(errDeleteLineNumInt)
+				return
+			}
+			noteLines = append(noteLines[:deleteLineNumInt-1], noteLines[deleteLineNumInt:]...)
+
+			// Update the new text file
+			var updatedNoteStrings string
+			for _, line := range noteLines {
+				updatedNoteStrings += fmt.Sprintf("%s\n", line)
+			}
+
+			// Write it to the file
+			errWriteNoteData := os.WriteFile("note.txt", []byte(updatedNoteStrings), 0644)
+
+			if errWriteNoteData != nil {
+				fmt.Println(errWriteNoteData)
+				return
+			}
+		} else if programState == 0 {
+			fmt.Print("\n\nProgram exited")
+		} else {
+			fmt.Print("\n\nInvalid option")
 		}
+
+		fmt.Print("\n\n\n\n")
 	}
 }
