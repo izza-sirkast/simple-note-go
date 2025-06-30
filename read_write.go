@@ -4,9 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
+
+func clearTerminal() {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", "cls")
+	} else {
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -15,12 +28,24 @@ func main() {
 	programState := 1
 
 	for programState != 0 {
+		clearTerminal()
+
 		// Show current note
 		// Read text from the input file
 		noteData, errNoteData := os.ReadFile("note.txt")
 		if errNoteData != nil {
-			fmt.Println(errNoteData)
-			return
+			if os.IsNotExist(errNoteData) {
+				emptyFile, err := os.Create("note.txt")
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				emptyFile.Close()
+				noteData = []byte{}
+			} else {
+				fmt.Println(errNoteData)
+				return
+			}
 		}
 		noteDataString := string(noteData)
 
@@ -30,33 +55,40 @@ func main() {
 			// noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
 			fmt.Printf("%d %s\n", i+1, line)
 		}
-		// Print the formatted note
-		// for _, line := range noteLines {
-		// 	fmt.Print(line)
-		// }
 
 		// Get user input for program option
 		fmt.Print("\n\n" +
 			"What do you want to do?\n" +
 			"1) Update a line\n" +
 			"2) Delete a line\n" +
-			"0) Exit\n" +
-			"Enter your option [1/2/0]: ")
+			"0) Exit\n")
 
-		userOptionPick, errUserOptionPick := reader.ReadString('\n')
-		if errUserOptionPick != nil {
-			fmt.Println(errUserOptionPick)
-			return
+		programState = 10
+		invalidUserOptionPick := false
+
+		for programState != 1 && programState != 2 && programState != 0 {
+			if invalidUserOptionPick {
+				fmt.Print("INVALID INPUT!\n")
+			}
+
+			fmt.Print("Enter your option [1/2/0]: ")
+
+			userOptionPick, errUserOptionPick := reader.ReadString('\n')
+			if errUserOptionPick != nil {
+				fmt.Println(errUserOptionPick)
+				return
+			}
+			userOptionPick = strings.TrimSpace(userOptionPick)
+
+			userOptionPickInt, err := strconv.Atoi(userOptionPick)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			programState = userOptionPickInt
+			invalidUserOptionPick = true
 		}
-		userOptionPick = strings.TrimSpace(userOptionPick)
-
-		userOptionPickInt, err := strconv.Atoi(userOptionPick)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		programState = userOptionPickInt
 
 		if programState == 1 {
 			// Change / insert a line with user input
@@ -123,11 +155,9 @@ func main() {
 				return
 			}
 		} else if programState == 0 {
-			fmt.Print("\n\nProgram exited")
-		} else {
-			fmt.Print("\n\nInvalid option")
+			fmt.Print("Program exited")
 		}
 
-		fmt.Print("\n\n\n\n")
+		fmt.Println()
 	}
 }
