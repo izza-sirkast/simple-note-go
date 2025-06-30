@@ -9,88 +9,125 @@ import (
 )
 
 func main() {
-	//text := "This is midnight coding session"
-
-	// reader := bufio.NewReader(os.Stdin)
-
-	// fmt.Print("Input: ")
-	// input, err_read_input := reader.ReadString('\n')
-	// if err_read_input != nil {
-	// 	fmt.Println(err_read_input)
-	// 	return
-	// }
-	// input = strings.TrimSpace(input)
-	// fmt.Println(input)
-
-	// err := os.WriteFile("test.txt", []byte(input), 0644)
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// 	return
-	// }
-
-	// data, err := os.ReadFile("test.txt")
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// 	return
-	// }
-
-	// fmt.Println(string(data))
-
 	reader := bufio.NewReader(os.Stdin)
 
-	// Read text from the input file
-	noteData, errNoteData := os.ReadFile("note.txt")
-	if errNoteData != nil {
-		fmt.Println(errNoteData)
-		return
-	}
-	noteDataString := string(noteData)
+	// Application loop
+	programState := 1
 
-	// Append index for every line
-	noteLines := strings.Split(noteDataString, "\n")
-	for i, line := range noteLines {
-		noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
-	}
-	for _, line := range noteLines {
-		fmt.Print(line)
-	}
+	for programState != 0 {
+		// Show current note
+		// Read text from the input file
+		noteData, errNoteData := os.ReadFile("note.txt")
+		if errNoteData != nil {
+			fmt.Println(errNoteData)
+			return
+		}
+		noteDataString := string(noteData)
 
-	// Change / insert a line with user input
-	fmt.Print("\n\n\n")
-	fmt.Print("Which line to be inserted: ")
-	insertLineNum, errInsertLineNum := reader.ReadString('\n')
-	if errInsertLineNum != nil {
-		fmt.Println(errInsertLineNum)
-		return
-	}
-	insertLineNum = strings.TrimSpace(insertLineNum)
-	insertLineNumInt, errInsertLineNumInt := strconv.Atoi(insertLineNum)
-	if errInsertLineNumInt != nil {
-		fmt.Println(errInsertLineNumInt)
-		return
-	}
+		// Format the note by appending index for every line
+		noteLines := strings.Split(noteDataString, "\n")
+		for i, line := range noteLines {
+			// noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
+			fmt.Printf("%d %s\n", i+1, line)
+		}
+		// Print the formatted note
+		// for _, line := range noteLines {
+		// 	fmt.Print(line)
+		// }
 
-	fmt.Print("Input: ")
-	insertLine, errInsertLine := reader.ReadString('\n')
-	if errInsertLine != nil {
-		fmt.Println(errInsertLine)
-		return
-	}
+		// Get user input for program option
+		fmt.Print("\n\n" +
+			"What do you want to do?\n" +
+			"1) Update a line\n" +
+			"2) Delete a line\n" +
+			"0) Exit\n" +
+			"Enter your option [1/2/0]: ")
 
-	noteLinesUpdated := strings.Split(noteDataString, "\n")
-	noteLinesUpdated[insertLineNumInt-1] = insertLine
-	var updatedNoteStrings string
-	for _, line := range noteLinesUpdated {
-		updatedNoteStrings += fmt.Sprintf("%s\n", line)
-	}
+		userOptionPick, errUserOptionPick := reader.ReadString('\n')
+		if errUserOptionPick != nil {
+			fmt.Println(errUserOptionPick)
+			return
+		}
+		userOptionPick = strings.TrimSpace(userOptionPick)
 
-	// Write it to the file
-	errWriteNoteData := os.WriteFile("note.txt", []byte(updatedNoteStrings), 0644)
+		userOptionPickInt, err := strconv.Atoi(userOptionPick)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 
-	if errWriteNoteData != nil {
-		fmt.Println(errWriteNoteData)
-		return
+		programState = userOptionPickInt
+
+		if programState == 1 {
+			// Change / insert a line with user input
+			fmt.Print("Which line to be updated: ")
+			insertLineNum, errInsertLineNum := reader.ReadString('\n')
+			if errInsertLineNum != nil {
+				fmt.Println(errInsertLineNum)
+				return
+			}
+			insertLineNum = strings.TrimSpace(insertLineNum)
+			insertLineNumInt, errInsertLineNumInt := strconv.Atoi(insertLineNum)
+			if errInsertLineNumInt != nil {
+				fmt.Println(errInsertLineNumInt)
+				return
+			}
+
+			fmt.Print("Type the new text: ")
+			insertLine, errInsertLine := reader.ReadString('\n')
+			if errInsertLine != nil {
+				fmt.Println(errInsertLine)
+				return
+			}
+
+			noteLines[insertLineNumInt-1] = insertLine
+			var updatedNoteStrings string
+			for _, line := range noteLines {
+				updatedNoteStrings += fmt.Sprintf("%s\n", line)
+			}
+
+			// Write it to the file
+			errWriteNoteData := os.WriteFile("note.txt", []byte(updatedNoteStrings), 0644)
+
+			if errWriteNoteData != nil {
+				fmt.Println(errWriteNoteData)
+				return
+			}
+		} else if programState == 2 {
+			// Change / insert a line with user input
+			fmt.Print("Which line to be deleted: ")
+			deleteLineNum, errDeleteLineNum := reader.ReadString('\n')
+			if errDeleteLineNum != nil {
+				fmt.Println(errDeleteLineNum)
+				return
+			}
+			deleteLineNum = strings.TrimSpace(deleteLineNum)
+			deleteLineNumInt, errDeleteLineNumInt := strconv.Atoi(deleteLineNum)
+			if errDeleteLineNumInt != nil {
+				fmt.Println(errDeleteLineNumInt)
+				return
+			}
+			noteLines = append(noteLines[:deleteLineNumInt-1], noteLines[deleteLineNumInt:]...)
+
+			// Update the new text file
+			var updatedNoteStrings string
+			for _, line := range noteLines {
+				updatedNoteStrings += fmt.Sprintf("%s\n", line)
+			}
+
+			// Write it to the file
+			errWriteNoteData := os.WriteFile("note.txt", []byte(updatedNoteStrings), 0644)
+
+			if errWriteNoteData != nil {
+				fmt.Println(errWriteNoteData)
+				return
+			}
+		} else if programState == 0 {
+			fmt.Print("\n\nProgram exited")
+		} else {
+			fmt.Print("\n\nInvalid option")
+		}
+
+		fmt.Print("\n\n\n\n")
 	}
 }
