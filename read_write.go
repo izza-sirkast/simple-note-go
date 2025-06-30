@@ -4,9 +4,22 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
+
+func clearTerminal() {
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", "cls")
+	} else {
+		cmd = exec.Command("clear")
+	}
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
 
 func main() {
 	reader := bufio.NewReader(os.Stdin)
@@ -15,6 +28,8 @@ func main() {
 	programState := 1
 
 	for programState != 0 {
+		clearTerminal()
+
 		// Show current note
 		// Read text from the input file
 		noteData, errNoteData := os.ReadFile("note.txt")
