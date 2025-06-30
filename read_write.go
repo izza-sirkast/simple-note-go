@@ -19,8 +19,18 @@ func main() {
 		// Read text from the input file
 		noteData, errNoteData := os.ReadFile("note.txt")
 		if errNoteData != nil {
-			fmt.Println(errNoteData)
-			return
+			if os.IsNotExist(errNoteData) {
+				emptyFile, err := os.Create("note.txt")
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				emptyFile.Close()
+				noteData = []byte{}
+			} else {
+				fmt.Println(errNoteData)
+				return
+			}
 		}
 		noteDataString := string(noteData)
 
@@ -30,10 +40,6 @@ func main() {
 			// noteLines[i] = fmt.Sprintf("%d %s\n", i+1, line)
 			fmt.Printf("%d %s\n", i+1, line)
 		}
-		// Print the formatted note
-		// for _, line := range noteLines {
-		// 	fmt.Print(line)
-		// }
 
 		// Get user input for program option
 		fmt.Print("\n\n" +

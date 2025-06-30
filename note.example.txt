@@ -1,3 +1,0 @@
-This is example of required note.txt file
-
-create note.txt in this directory for input and output this app
